@@ -23,7 +23,7 @@ Oznacza to, że dwóch klientów zrezygnowało z powodu braku miejsc (*Res*), w 
 
 
 ### Zarys działania programu
-###### *1. Parametry wejściowe:*
+##### *1. Parametry wejściowe:*
 
         liczba krzeseł w poczekalni (*)
         -debug (opcjonalny) - wypisywana jest cała kolejka klientów czekających oraz tych, którzy zrezygnowali z usług (komunikat wypisywany w momencie zmiany którejkolwiek z tych wartości)
