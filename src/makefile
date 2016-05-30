@@ -1,4 +1,6 @@
 compile :
+	rm -rf compiled
+	mkdir compiled
 	gcc fryzjer.c -o compiled/fryzjer -pthread
 	clear
 
@@ -7,8 +9,8 @@ ct :
 	clear
 	make test
 
-test :
-	compiled/fryzjer
+tm :
+	compiled/fryzjer 10
 	
-params :
-	compiled/fryzjer 10 -zmienne -debug
+tz :
+	compiled/fryzjer 10 -zmienne
