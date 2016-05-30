@@ -2,7 +2,6 @@ compile :
 	rm -rf compiled
 	mkdir compiled
 	gcc fryzjer.c -o compiled/fryzjer -pthread
-	clear
 
 ct :
 	make compile
@@ -10,7 +9,7 @@ ct :
 	make test
 
 tm :
-	compiled/fryzjer 10
+	compiled/fryzjer 2
 	
 tz :
 	compiled/fryzjer 10 -zmienne
