@@ -1,10 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <pthread.h>
 
 volatile int numOfChairs;
 volatile int debug = 0;
 volatile int condv = 0;
+
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 int main(int argc, char* argv[]) {
 	if(argc == 1) {
@@ -20,8 +23,6 @@ int main(int argc, char* argv[]) {
 		exit(EXIT_FAILURE);
 	}
 
-	printf("Liczba krzesel: %d\n", numOfChairs);
-
 	for(i; i<argc; i++) {
 		if(strcmp(argv[i], "-debug") == 0) {
 			debug = 1;
@@ -30,6 +31,13 @@ int main(int argc, char* argv[]) {
 		} else {
 			printf("\tBlad: Dostępne parametry: [-debug] [-zmienne]\n");
 		}
+	}
+	
+	printf("Liczba krzesel: %d\n", numOfChairs);
+	
+	if(condv == 0) { // bez wykorzystania zmiennych warunkowych (tylko mutexy/semafory)
+		pthread_t threads[numOfChairs];
+		
 	}
 	
 	printf("Podsumowanie: debug %d | zmienne: %d.\n", debug, condv);
