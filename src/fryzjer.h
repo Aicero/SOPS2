@@ -5,9 +5,10 @@
 #include <pthread.h>
 #include <semaphore.h>
 
+void logger(int);
 void mutex_style();
 void *barber();
-void *customer();
+void *customer(void *);
 
 volatile int resigned = 0;
 volatile int currentlyInWRoom = 0;
@@ -25,3 +26,4 @@ sem_t barbers;
 sem_t mutex;
 
 #include "mutex_style.c"
+#include "logger.c"

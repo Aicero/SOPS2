@@ -9,7 +9,7 @@ ct :
 	make test
 
 tm :
-	compiled/fryzjer 5
+	compiled/fryzjer 1
 	
 tz :
 	compiled/fryzjer 10 -zmienne
