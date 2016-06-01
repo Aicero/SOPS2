@@ -7,7 +7,7 @@
 
 void mutex_style();
 void *barber();
-void *customer(void *nr);
+void *customer();
 
 volatile int resigned = 0;
 volatile int currentlyInWRoom = 0;
@@ -15,15 +15,13 @@ volatile int numOfChairs;
 
 volatile int debug = 0;
 volatile int condv = 0;
-volatile int customerNumber = 0;
+volatile int lastCustNr = 0;
 
-//pthread_mutex_t gabinet = PTHREAD_MUTEX_INITIALIZER;
+int *tablica;
+int aktualnyRozmiar = 10;
 
-sem_t WRoom;
-sem_t InChair;
-sem_t BusyAsHell;
-sem_t Sleep;
-
-pthread_t brb;
+sem_t customers;
+sem_t barbers;
+sem_t mutex;
 
 #include "mutex_style.c"
