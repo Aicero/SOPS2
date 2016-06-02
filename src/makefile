@@ -3,13 +3,13 @@ compile :
 	mkdir compiled
 	gcc fryzjer.c -o compiled/fryzjer -pthread
 
-ct :
+ctm :
 	make compile
 	clear
-	make test
+	make tm
 
 tm :
-	compiled/fryzjer 1
+	compiled/fryzjer 7
 	
 tz :
 	compiled/fryzjer 10 -zmienne

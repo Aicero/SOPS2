@@ -28,7 +28,6 @@ int aktualnyRozmiar = 10;
 sem_t customers;
 sem_t barbers;
 sem_t mutex;
-//pthread_mutex_t mutex;
 sem_t chair;
 
 #include "mutex_style.c"
