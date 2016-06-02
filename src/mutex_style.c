@@ -2,42 +2,39 @@ void mutex_style() {
 	printf("jestesmy w mutexach\n\n");
 	
 	tablica = (int *) malloc(aktualnyRozmiar * sizeof(int));
+	if(tablica == NULL) {
+		perror("malloc");
+		exit(EXIT_FAILURE);
+	}
 			
 	pthread_t brb;
 	pthread_t cust;
-	pthread_t cust2;
-	pthread_t cust3;
-	pthread_t cust4;
 	
 	sem_init(&barbers, 0, 0);
 	sem_init(&customers, 0, 0);
+	sem_init(&chair, 0, 1);
 	sem_init(&mutex, 0, 1);
 	
 	pthread_create(&brb, NULL, barber, NULL);
 	
-	lastCustNr++; // to w while, i++ -> jak i wieksze niz aktualnyRozmiar to realloc
-	tablica[1] = lastCustNr;
-	pthread_create(&cust, NULL, customer, (void *)&tablica[1]);
-	pthread_join(cust, NULL);
-	
-	//usleep(50*1000);
-	lastCustNr++;
-	tablica[2] = lastCustNr;
-	pthread_create(&cust2, NULL, customer, (void *)&tablica[2]);
-	pthread_join(cust2, NULL);
-	
-	//usleep(50*1000);
-	lastCustNr++;
-	tablica[3] = lastCustNr;
-	pthread_create(&cust2, NULL, customer, (void *)&tablica[3]);
-	pthread_join(cust3, NULL);
-	
-	//usleep(50*1000);
-	lastCustNr++;
-	tablica[4] = lastCustNr;
-	pthread_create(&cust3, NULL, customer, (void *)&tablica[4]);
-	pthread_join(cust3, NULL);
-	
+	while (1) {
+		usleep(5000*100);
+		lastCustNr++;
+		
+		if (lastCustNr == aktualnyRozmiar) {
+			printf("\taktualny rozmiar: %d", aktualnyRozmiar);
+			printf("\ttworzenie klienta %d -> realloc\n", lastCustNr);
+			aktualnyRozmiar *= 2;
+			tablica = realloc(tablica, aktualnyRozmiar*sizeof(int));
+			if (tablica == NULL) {
+				perror("realloc");
+				exit(EXIT_FAILURE);
+			}
+		}
+		tablica[lastCustNr] = lastCustNr;
+		pthread_create(&cust, NULL, customer, (void *)&tablica[lastCustNr]);
+	}
+		
 	pthread_join(brb, NULL);
 	free(tablica);
 }
@@ -46,14 +43,18 @@ void *barber() {
 	while(1) {
 		// fryzjer oczekuje na pojawienie się klienta
 		sem_wait(&customers);
-		//printf("Klient budzi fryzjera.\n");
 		
 		// obszar krytyczny: 
 		sem_wait(&mutex);
-		//logger(-1);
-		//printf("zapraszam\n");
-		sem_post(&barbers); // klient jest informowany o możliwości wejścia do gabinetu
-		currentlyInWRoom--; // zmniejszenie licznika osób w WRoom
+		
+		if(served == 1) {
+			sem_post(&barbers); // klient jest informowany o możliwości wejścia do gabinetu	
+			printf("\tprzed: %d\n", currentlyInWRoom);
+			currentlyInWRoom--; // zmniejszenie licznika osób w WRoom
+			served = 0;
+			printf("\t\tpo: %d\n", currentlyInWRoom);
+			logger();
+		}
 		
 		sem_post(&mutex); // wyjście z obszaru krytycznego
 	}
@@ -61,13 +62,12 @@ void *barber() {
 
 void *customer(void *number) {
     int num = *(int *)number;
-	// obszar krytyczny
-	sem_wait(&mutex);
+	sem_wait(&mutex); // obszar krytyczny
 	
 	if(currentlyInWRoom < numOfChairs) {
 		printf("Klient %d wchodzi do poczekalni.\n", num);
 		currentlyInWRoom++;
-		logger(num);
+		logger();
 	
 		sem_post(&customers); // fryzjer jest informowany, że jest jakiś klient
 		
@@ -75,14 +75,24 @@ void *customer(void *number) {
 		
 		sem_wait(&barbers); // oczekiwanie aż fryzjer zaprosi klienta do gabinetu
 		
-		printf("Wlosy klienta %d sa scinane.\n", num);
-		logger(num);
-		//usleep(5000*1000);
+		sem_wait(&chair);
+		custInChair = num;
+		logger();
+		printf("\tKlient %d wchodzi do gabinetu.\n", num);
+		usleep(5000*200);
+		sem_wait(&mutex);
+		served = 1;
+		custInChair = 0;
+		logger();
+		printf("\nhalo lapki w gore\n");
+		
+		sem_post(&mutex);
+		sem_post(&chair);
 	}
 	else {
-		sem_post(&mutex);
 		resigned++;
-		//printf("\tPoczekalnia pelna - klient %d rezygnuje.\n", num);
-		logger(num);
+		sem_post(&mutex);
+		printf("\tPoczekalnia pelna - klient %d rezygnuje.\n", num);
+		logger();
 	}
 }
