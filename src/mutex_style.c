@@ -1,5 +1,5 @@
 void mutex_style() {
-	prepareResClients();
+	prepareResClients(); // funkcja alokujaca pamiec na tablice rezygnujacych klientow
 	
 	pthread_t brb;
 	pthread_t cust;
@@ -18,7 +18,7 @@ void mutex_style() {
 		exit(EXIT_FAILURE);
 	}
 
-	// ciagle tworzenie watkow klientow
+	// nieskonczone tworzenie watkow klientow
 	while (1) {
 		lastCustNr++;
 
@@ -36,7 +36,7 @@ void mutex_style() {
 		}
 
 		int rnd = rand() % 3;
-		usleep(rnd * 500 * 1000);
+		usleep(rnd * 500 * 1000); // czas oczekiwania na przyjscie kolejnego klienta
 	}
 }
 
@@ -47,13 +47,13 @@ void *barber() {
 		sem_wait(&customers);
 
 		sem_wait(&mutex); // wejscie w obszar krytyczny
-		if (served == 1) { // weryfikacja, czy ostatni klient zostal obsluzony
-			sem_post(&barbers); // klienci sa informowani o mozliwosci wejscia do gabinetu	
+		if (served == 1) { // czy ostatni klient obsluzony
+			sem_post(&barbers); // informowanie klientow o mozliwosci wejscia do gabinetu
 
 			// zmniejszenie licznika osob w WRoom
 			currentlyInWRoom--;
 
-			// ustawienie flagi, ktora zablokuje ponowne wejscie do tego ifa --> zmniejszenie licznika odbedzie sie raz
+			// ustawienie flagi
 			served = 0;
 		}
 		sem_post(&mutex); // wyjscie z obszaru krytycznego
@@ -61,7 +61,7 @@ void *barber() {
 		sem_wait(&chair); // oczekiwanie na wejscie klienta do gabinetu
 
 		int rnd = rand() % 3;
-		usleep(rnd * 500 * 1000);
+		usleep(rnd * 500 * 1000); // strzyzenie
 
 		sem_post(&chair); // wypuszczenie klienta z gabinetu
 	}
@@ -72,19 +72,18 @@ void *customer(void *number) {
 	int num = *(int *)number;
 	sem_wait(&mutex); // wejscie w obszar krytyczny
 
-	// jesli aktualnie w WRoom jest tyle klientow ile jest krzesel to klient rezygnuje
+	// rezygnacja klienta, jesli nie ma miejsc
 	if (currentlyInWRoom == numOfChairs) {
-		addResignedClient(num); // dodawanie numer zrezygnowanego klienta do listy
+		addResignedClient(num); // dodawanie numeru zrezygnowanego klienta do listy
 		logger();
 		sem_post(&mutex); // wyjscie z obszaru krytycznego
 	}
-	// w przeciwnym wypadku klient wchodzi do poczekalni
-	else {
+	else { // wejscie do poczekalni
 		// zwiekszenie licznika osob w WRoom
 		currentlyInWRoom++;
 		logger();
 
-		sem_post(&customers); // fryzjer jest informowany, ze jest jakis klient
+		sem_post(&customers); // informowanie fryzjera o kliencie
 
 		sem_post(&mutex); // wyjscie z obszaru krytycznego
 

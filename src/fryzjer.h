@@ -15,16 +15,16 @@ void *customer(void *);
 volatile int debug = 0;
 volatile int condv = 0;
 
-volatile int resigned = 0;
-int *resClients;
-int resClientsSize = 10;
+int *resClients; // tablica przechowujaca liste klientow, ktorzy zrezygnowali z wizyty
+int resClientsSize = 10; // zmienna przechowujaca aktualny rozmiar listy Res
+volatile int resigned = 0; // liczba klientow ktorzy zrezygnowali z wizyty
 
-volatile int currentlyInWRoom = 0;
-volatile int numOfChairs;
+volatile int numOfChairs; // liczba krzesel w poczekalni
+volatile int currentlyInWRoom = 0; // aktualna liczba klientow w poczekalni
 
-volatile int lastCustNr = 0;
-volatile int custInChair = 0;
-volatile int served = 1;
+volatile int lastCustNr = 0; // flaga przechowujaca numer ostatnio stworzonego klienta
+volatile int custInChair = 0; // flaga przechowujaca numer klienta w gabinecie
+volatile int served = 1; // flaga, 'czy ostatni klient obsluzony'
 
 sem_t customers;
 sem_t barbers;
