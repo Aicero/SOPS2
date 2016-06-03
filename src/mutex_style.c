@@ -1,10 +1,4 @@
 void mutex_style() {
-	tablica = (int *)malloc(aktualnyRozmiar * sizeof(int));
-	if (tablica == NULL) {
-		perror("malloc");
-		exit(EXIT_FAILURE);
-	}
-
 	pthread_t brb;
 	pthread_t cust;
 	int thrErr;
@@ -18,7 +12,7 @@ void mutex_style() {
 	// utworzenie watku fryzjera
 	thrErr = pthread_create(&brb, NULL, barber, NULL);
 	if (thrErr != 0) {
-		printf("error during creating barber thread!");
+		fprintf(stderr, "error during creating barber thread!");
 		exit(EXIT_FAILURE);
 	}
 
@@ -26,19 +20,16 @@ void mutex_style() {
 	while (1) {
 		lastCustNr++;
 
-		if (lastCustNr == aktualnyRozmiar) {
-			aktualnyRozmiar *= 2;
-			tablica = realloc(tablica, aktualnyRozmiar*sizeof(int));
-			if (tablica == NULL) {
-				perror("realloc");
-				exit(EXIT_FAILURE);
-			}
+		int *custNr = malloc(sizeof(*custNr));
+		if(custNr == NULL) {
+			fprintf(stderr, "error allocating memory for next customer number!");
+			exit(EXIT_FAILURE);
 		}
-
-		tablica[lastCustNr] = lastCustNr;
-		thrErr = pthread_create(&cust, NULL, customer, (void *)&tablica[lastCustNr]);
+		
+		*custNr = lastCustNr;
+		thrErr = pthread_create(&cust, NULL, customer, custNr);
 		if (thrErr != 0) {
-			printf("error during creating barber thread!");
+			fprintf(stderr, "error during creating barber thread!");
 			exit(EXIT_FAILURE);
 		}
 
@@ -111,4 +102,6 @@ void *customer(void *number) {
 		sem_post(&mutex); // wyjscie z obszaru krytycznego
 		sem_post(&chair); // informacja dla fryzjera, ze klient wyszedl z gabinetu
 	}
+	
+	free(number);
 }

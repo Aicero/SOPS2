@@ -22,9 +22,6 @@ volatile int custInChair = 0;
 
 volatile int served = 1;
 
-int *tablica;
-int aktualnyRozmiar = 10;
-
 sem_t customers;
 sem_t barbers;
 sem_t mutex;
