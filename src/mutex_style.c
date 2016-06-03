@@ -1,10 +1,6 @@
 void mutex_style() {
-	tablica = (int *)malloc(aktualnyRozmiar * sizeof(int));
-	if (tablica == NULL) {
-		perror("malloc");
-		exit(EXIT_FAILURE);
-	}
-
+	prepareResClients(); // funkcja alokujaca pamiec na tablice rezygnujacych klientow
+	
 	pthread_t brb;
 	pthread_t cust;
 	int thrErr;
@@ -18,32 +14,29 @@ void mutex_style() {
 	// utworzenie watku fryzjera
 	thrErr = pthread_create(&brb, NULL, barber, NULL);
 	if (thrErr != 0) {
-		printf("error during creating barber thread!");
+		fprintf(stderr, "error during creating barber thread!");
 		exit(EXIT_FAILURE);
 	}
 
-	// ciagle tworzenie watkow klientow
+	// nieskonczone tworzenie watkow klientow
 	while (1) {
 		lastCustNr++;
 
-		if (lastCustNr == aktualnyRozmiar) {
-			aktualnyRozmiar *= 2;
-			tablica = realloc(tablica, aktualnyRozmiar*sizeof(int));
-			if (tablica == NULL) {
-				perror("realloc");
-				exit(EXIT_FAILURE);
-			}
+		int *custNr = malloc(sizeof(*custNr));
+		if(custNr == NULL) {
+			fprintf(stderr, "error allocating memory for next customer number!");
+			exit(EXIT_FAILURE);
 		}
-
-		tablica[lastCustNr] = lastCustNr;
-		thrErr = pthread_create(&cust, NULL, customer, (void *)&tablica[lastCustNr]);
+		
+		*custNr = lastCustNr;
+		thrErr = pthread_create(&cust, NULL, customer, custNr);
 		if (thrErr != 0) {
-			printf("error during creating barber thread!");
+			fprintf(stderr, "error during creating barber thread!");
 			exit(EXIT_FAILURE);
 		}
 
 		int rnd = rand() % 3;
-		usleep(rnd * 500 * 1000);
+		usleep(rnd * 500 * 1000); // czas oczekiwania na przyjscie kolejnego klienta
 	}
 }
 
@@ -54,13 +47,13 @@ void *barber() {
 		sem_wait(&customers);
 
 		sem_wait(&mutex); // wejscie w obszar krytyczny
-		if (served == 1) { // weryfikacja, czy ostatni klient zostal obsluzony
-			sem_post(&barbers); // klienci sa informowani o mozliwosci wejscia do gabinetu	
+		if (served == 1) { // czy ostatni klient obsluzony
+			sem_post(&barbers); // informowanie klientow o mozliwosci wejscia do gabinetu
 
 			// zmniejszenie licznika osob w WRoom
 			currentlyInWRoom--;
 
-			// ustawienie flagi, ktora zablokuje ponowne wejscie do tego ifa --> zmniejszenie licznika odbedzie sie raz
+			// ustawienie flagi
 			served = 0;
 		}
 		sem_post(&mutex); // wyjscie z obszaru krytycznego
@@ -68,7 +61,7 @@ void *barber() {
 		sem_wait(&chair); // oczekiwanie na wejscie klienta do gabinetu
 
 		int rnd = rand() % 3;
-		usleep(rnd * 500 * 1000);
+		usleep(rnd * 500 * 1000); // strzyzenie
 
 		sem_post(&chair); // wypuszczenie klienta z gabinetu
 	}
@@ -79,19 +72,18 @@ void *customer(void *number) {
 	int num = *(int *)number;
 	sem_wait(&mutex); // wejscie w obszar krytyczny
 
-	// jesli aktualnie w WRoom jest tyle klientow ile jest krzesel to klient rezygnuje
+	// rezygnacja klienta, jesli nie ma miejsc
 	if (currentlyInWRoom == numOfChairs) {
-		resigned++; // zwiekszenie licznika osob, ktore zrezygnowaly
+		addResignedClient(num); // dodawanie numeru zrezygnowanego klienta do listy
 		logger();
 		sem_post(&mutex); // wyjscie z obszaru krytycznego
 	}
-	// w przeciwnym wypadku klient wchodzi do poczekalni
-	else {
+	else { // wejscie do poczekalni
 		// zwiekszenie licznika osob w WRoom
 		currentlyInWRoom++;
 		logger();
 
-		sem_post(&customers); // fryzjer jest informowany, ze jest jakis klient
+		sem_post(&customers); // informowanie fryzjera o kliencie
 
 		sem_post(&mutex); // wyjscie z obszaru krytycznego
 
@@ -111,4 +103,6 @@ void *customer(void *number) {
 		sem_post(&mutex); // wyjscie z obszaru krytycznego
 		sem_post(&chair); // informacja dla fryzjera, ze klient wyszedl z gabinetu
 	}
+	
+	free(number);
 }

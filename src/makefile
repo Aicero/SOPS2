@@ -9,7 +9,10 @@ ctm :
 	make tm
 
 tm :
-	compiled/fryzjer 7
+	compiled/fryzjer 5
+	
+tmd :
+	compiled/fryzjer 5 -debug
 	
 tz :
 	compiled/fryzjer 10 -zmienne
