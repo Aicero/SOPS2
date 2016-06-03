@@ -1,4 +1,6 @@
 void mutex_style() {
+	prepareResClients();
+	
 	pthread_t brb;
 	pthread_t cust;
 	int thrErr;
@@ -72,7 +74,7 @@ void *customer(void *number) {
 
 	// jesli aktualnie w WRoom jest tyle klientow ile jest krzesel to klient rezygnuje
 	if (currentlyInWRoom == numOfChairs) {
-		resigned++; // zwiekszenie licznika osob, ktore zrezygnowaly
+		addResignedClient(num); // dodawanie numer zrezygnowanego klienta do listy
 		logger();
 		sem_post(&mutex); // wyjscie z obszaru krytycznego
 	}
