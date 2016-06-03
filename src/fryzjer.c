@@ -26,8 +26,6 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
-	printf("Liczba krzesel: %d\n", numOfChairs);
-
 	if (condv == 0) { // bez wykorzystania zmiennych warunkowych (tylko mutexy/semafory)
 		mutex_style();
 	}
@@ -35,7 +33,6 @@ int main(int argc, char* argv[]) {
 		// tu wywołanie funkcji do zmiennych warunkowych
 	}
 
-	printf("Podsumowanie: debug %d | zmienne: %d.\n", debug, condv);
 	return 0;
 }
 
