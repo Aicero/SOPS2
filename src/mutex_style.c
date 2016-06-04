@@ -1,5 +1,5 @@
 void mutex_style() {
-	prepareResClients(); // funkcja alokujaca pamiec na tablice rezygnujacych klientow
+	prepareResClients();
 
 	pthread_t customerThread;
 	int thrErr;
@@ -46,24 +46,19 @@ void mutex_style() {
 // funkcja obslugujaca watek fryzjera
 void *barber() {
 	while (1) {
-		// oczekiwanie na pojawienie sie klienta
-		sem_wait(&customers);
+		sem_wait(&customers); // oczekiwanie na pojawienie sie klienta
 
 		sem_wait(&mutex); // wejscie w obszar krytyczny
 		if (served == 1) { // czy ostatni klient obsluzony
 			sem_post(&barbers); // informowanie klientow o mozliwosci wejscia do gabinetu
-
-			// ustawienie flagi
-			served = 0;
+			served = 0; // ustawienie flagi
 		}
 
 		sem_post(&mutex); // wyjscie z obszaru krytycznego
 
 		sem_wait(&chair); // oczekiwanie na wejscie klienta do gabinetu
-
 		int rnd = rand() % 4;
 		usleep(rnd * 500 * 1000); // strzyzenie
-
 		sem_post(&chair); // wypuszczenie klienta z gabinetu
 	}
 	pthread_exit(0);
@@ -76,23 +71,21 @@ void *customer(void *number) {
 
 	// rezygnacja klienta, jesli nie ma miejsc
 	if (currentlyInWRoom == numOfChairs) {
-		addResignedClient(num); // dodawanie numeru zrezygnowanego klienta do listy
+		addResignedClient(num);
 		logger();
 		sem_post(&mutex); // wyjscie z obszaru krytycznego
 	}
 	else { // wejscie do poczekalni
-		// zwiekszenie licznika osob w WRoom
 		currentlyInWRoom++;
 		pushToWRoomList(num);
 		logger();
 
 		sem_post(&customers); // informowanie fryzjera o kliencie
-
 		sem_post(&mutex); // wyjscie z obszaru krytycznego
 
 		sem_wait(&barbers); // oczekiwanie az fryzjer zaprosi klienta do gabinetu
-
 		sem_wait(&mutex); // wejscie do obszaru krytycznego
+		
 		custInChair = num; // klient wchodzi do gabinetu
 		removeFromWRoomList(num); // usuniecie osoby z WRoom list
 		currentlyInWRoom--; // zmniejszenie licznika osob w WRoom

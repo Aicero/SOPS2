@@ -4,20 +4,26 @@
 #include <string.h>
 #include <pthread.h>
 #include <semaphore.h>
-#include "wroom-list.c"
 #include "ticket_lock.c"
+#include "wroom-list.c"
 
 void logger();
 void prepareResClients();
 void addResignedClient(int);
-void mutex_style();
-void conditional_style();
-void *barber();
-void *customer(void *);
 
 void printWRoomList();
 void pushToWRoomList(int);
 void removeFromWRoomList(int);
+
+void mutex_style();
+void *barber();
+void *customer(void *);
+
+void conditional_style();
+void ticket_lock(ticket_lock_t *ticket);
+void ticket_unlock(ticket_lock_t *ticket);
+void *sleepingBarber();
+void *waitingRoom(void *);
 
 volatile int debug = 0;
 volatile int condv = 0;
@@ -34,11 +40,6 @@ volatile int custInChair = 0; // flaga przechowujaca numer klienta w gabinecie
 volatile int served = 1; // flaga, 'czy ostatni klient obsluzony'
 
 volatile int sleeping = 0;
-
-void ticket_lock(ticket_lock_t *ticket);
-void ticket_unlock(ticket_lock_t *ticket);
-void *sleepingBarber();
-void *waitingRoom(void *);
 
 pthread_t barberThread;
 
