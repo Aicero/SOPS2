@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <pthread.h>
 
+#define TICKET_LOCK_INITIALIZER { PTHREAD_COND_INITIALIZER, PTHREAD_MUTEX_INITIALIZER }
+
 void *sleepingBarber();
 void *waitingRoom(void *);
 void checkWRoom(int);
@@ -10,10 +12,47 @@ void checkWRoom(int);
 pthread_cond_t sleepingBarber_cond = PTHREAD_COND_INITIALIZER;
 pthread_cond_t workingBarber_cond = PTHREAD_COND_INITIALIZER;
 pthread_mutex_t sleepMutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t waitMutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t queueMutex = PTHREAD_MUTEX_INITIALIZER;
+
+ticket_lock_t waitMutex = PTHREAD_MUTEX_INITIALIZER;
+ticket_lock_t queueMutex = PTHREAD_MUTEX_INITIALIZER;
+
+int ticket_lock(ticket_lock_t *ticket);
+int ticket_unlock(ticket_lock_t *ticket);
 
 volatile int sleeping=0, rndSeed;
+
+//FIFO http://stackoverflow.com/a/5386266/1558280
+typedef struct ticket_lock {
+    pthread_cond_t cond;
+    pthread_mutex_t mutex;
+    unsigned long queue_head, queue_tail;
+} ticket_lock_t;
+
+#define TICKET_LOCK_INITIALIZER { PTHREAD_COND_INITIALIZER, PTHREAD_MUTEX_INITIALIZER }
+
+void ticket_lock(ticket_lock_t *ticket)
+{
+    unsigned long queue_me;
+
+    pthread_mutex_lock(&ticket->mutex);
+    queue_me = ticket->queue_tail++;
+    while (queue_me != ticket->queue_head)
+    {
+        pthread_cond_wait(&ticket->cond, &ticket->mutex);
+    }
+    pthread_mutex_unlock(&ticket->mutex);
+}
+
+void ticket_unlock(ticket_lock_t *ticket)
+{
+    pthread_mutex_lock(&ticket->mutex);
+    ticket->queue_head++;
+    pthread_cond_broadcast(&ticket->cond);
+    pthread_mutex_unlock(&ticket->mutex);
+}
+
+
+
 
 int conditional_style()
 {
@@ -58,7 +97,7 @@ void *waitingRoom(void *number)
 {
     int num = *(int *)number;
     //Lock na mutexie poczekalni (sprawdzac moze tylko jeden klient na raz)
-    pthread_mutex_lock(&queueMutex);
+    ticket_lock(&queueMutex);
     //Sprawdzenie poczekalni
     checkWRoom(num);
     //Po zakonczeniu
@@ -111,15 +150,15 @@ void checkWRoom(int number)
             pthread_cond_signal(&sleepingBarber_cond);
         }
         //Klient zwalnia queueMutex - poczekalnie moze sprawdzic kolejny klient
-        pthread_mutex_unlock(&queueMutex);
+        ticket_unlock(&queueMutex);
         //Klient zajmuje miejsce na samym poczatku kolejki
-        pthread_mutex_lock(&waitMutex);
+        ticket_lock(&waitMutex);
         logger();
         //Klient czeka na zwolnienie miejsca u fryzjera
         pthread_cond_wait(&workingBarber_cond,&waitMutex);
         custInChair = number;
         logger();
-        pthread_mutex_unlock(&waitMutex);
+        ticket_unlock(&waitMutex);
         return;
     }
     if(currentlyInWRoom >= numOfChairs)
@@ -129,7 +168,7 @@ void checkWRoom(int number)
         addResignedClient(number); // dodawanie numeru zrezygnowanego klienta do listy
         logger();
         //I zwalnia queueMutex - poczekalnie moze sprawdzic kolejny klient
-        pthread_mutex_unlock(&queueMutex);
+        ticket_unlock(&queueMutex);
         return;
     }
 }
