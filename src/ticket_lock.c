@@ -1,4 +1,3 @@
-//FIFO http://stackoverflow.com/a/5386266/1558280
 typedef struct ticket_lock_t {
 	pthread_cond_t cond;
 	pthread_mutex_t mutex;

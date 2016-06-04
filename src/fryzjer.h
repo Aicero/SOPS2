@@ -13,7 +13,6 @@ void mutex_style();
 void conditional_style();
 void *barber();
 void *customer(void *);
-void createNewCustomer();
 
 volatile int debug = 0;
 volatile int condv = 0;
@@ -59,5 +58,3 @@ ticket_lock_t queueFIFOMutex = TICKET_LOCK_INITIALIZER;
 #include "logger.c"
 #include "resigned_clients.c"
 #include "conditional_style.c"
-#include "createNewCustomer.c"
-

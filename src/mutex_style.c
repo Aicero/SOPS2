@@ -37,7 +37,7 @@ void mutex_style() {
 		int rnd = rand() % 4;
 		usleep(rnd * 500 * 1000); // czas oczekiwania na przyjscie kolejnego klienta
 	}
-	
+
 	// zabezpieczenie przed deadlockiem
 	pthread_join(barberThread, NULL);
 	pthread_join(customerThread, NULL);
@@ -56,12 +56,12 @@ void *barber() {
 			// ustawienie flagi
 			served = 0;
 		}
-		
+
 		sem_post(&mutex); // wyjscie z obszaru krytycznego
 
 		sem_wait(&chair); // oczekiwanie na wejscie klienta do gabinetu
 
-		int rnd = rand() % 3;
+		int rnd = rand() % 4;
 		usleep(rnd * 500 * 1000); // strzyzenie
 
 		sem_post(&chair); // wypuszczenie klienta z gabinetu

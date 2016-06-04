@@ -12,10 +12,10 @@ tm :
 	compiled/fryzjer 5
 	
 tmd :
-	compiled/fryzjer 2 -debug
+	compiled/fryzjer 5 -debug
 	
 tz :
-	compiled/fryzjer 10 -zmienne
+	compiled/fryzjer 5 -zmienne
 
 tzd :
-	compiled/fryzjer 2 -debug -zmienne
+	compiled/fryzjer 5 -debug -zmienne
