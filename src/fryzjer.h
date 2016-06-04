@@ -4,11 +4,13 @@
 #include <string.h>
 #include <pthread.h>
 #include <semaphore.h>
+#include "ticket_lock.c"
 
 void logger();
 void prepareResClients();
 void addResignedClient(int);
 void mutex_style();
+void conditional_style();
 void *barber();
 void *customer(void *);
 
@@ -26,11 +28,33 @@ volatile int lastCustNr = 0; // flaga przechowujaca numer ostatnio stworzonego k
 volatile int custInChair = 0; // flaga przechowujaca numer klienta w gabinecie
 volatile int served = 1; // flaga, 'czy ostatni klient obsluzony'
 
+volatile int sleeping = 0;
+
+void ticket_lock(ticket_lock_t *ticket);
+void ticket_unlock(ticket_lock_t *ticket);
+void *sleepingBarber();
+void *waitingRoom(void *);
+
+pthread_t barberThread;
+
+// mutex_style >>
 sem_t customers;
 sem_t barbers;
 sem_t mutex;
 sem_t chair;
+// mutex_style <<
+
+// conditional_style >>
+pthread_cond_t sleepingBarber_cond = PTHREAD_COND_INITIALIZER;
+pthread_cond_t workingBarber_cond = PTHREAD_COND_INITIALIZER;
+pthread_mutex_t sleepMutex = PTHREAD_MUTEX_INITIALIZER;
+
+pthread_mutex_t waitMutex = PTHREAD_MUTEX_INITIALIZER;
+ticket_lock_t queueMutex = TICKET_LOCK_INITIALIZER;
+ticket_lock_t queueFIFOMutex = TICKET_LOCK_INITIALIZER;
+// conditional_style <<
 
 #include "mutex_style.c"
 #include "logger.c"
 #include "resigned_clients.c"
+#include "conditional_style.c"

@@ -26,13 +26,13 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
+	srand(time(NULL));
 	if (condv == 0) { // bez wykorzystania zmiennych warunkowych (tylko mutexy/semafory)
 		mutex_style();
 	}
 	else {
-		// tu wywołanie funkcji do zmiennych warunkowych
+		conditional_style(); // tu wywołanie funkcji do zmiennych warunkowych
 	}
 
 	return 0;
 }
-

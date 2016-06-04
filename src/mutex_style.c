@@ -1,8 +1,7 @@
 void mutex_style() {
 	prepareResClients(); // funkcja alokujaca pamiec na tablice rezygnujacych klientow
-	
-	pthread_t brb;
-	pthread_t cust;
+
+	pthread_t customerThread;
 	int thrErr;
 
 	// inicjalizacja semaforow
@@ -12,7 +11,7 @@ void mutex_style() {
 	sem_init(&mutex, 0, 1);
 
 	// utworzenie watku fryzjera
-	thrErr = pthread_create(&brb, NULL, barber, NULL);
+	thrErr = pthread_create(&barberThread, NULL, barber, NULL);
 	if (thrErr != 0) {
 		fprintf(stderr, "error during creating barber thread!");
 		exit(EXIT_FAILURE);
@@ -23,21 +22,25 @@ void mutex_style() {
 		lastCustNr++;
 
 		int *custNr = malloc(sizeof(*custNr));
-		if(custNr == NULL) {
+		if (custNr == NULL) {
 			fprintf(stderr, "error allocating memory for next customer number!");
 			exit(EXIT_FAILURE);
 		}
-		
+
 		*custNr = lastCustNr;
-		thrErr = pthread_create(&cust, NULL, customer, custNr);
+		thrErr = pthread_create(&customerThread, NULL, customer, custNr);
 		if (thrErr != 0) {
 			fprintf(stderr, "error during creating barber thread!");
 			exit(EXIT_FAILURE);
 		}
 
-		int rnd = rand() % 3;
+		int rnd = rand() % 4;
 		usleep(rnd * 500 * 1000); // czas oczekiwania na przyjscie kolejnego klienta
 	}
+
+	// zabezpieczenie przed deadlockiem
+	pthread_join(barberThread, NULL);
+	pthread_join(customerThread, NULL);
 }
 
 // funkcja obslugujaca watek fryzjera
@@ -50,21 +53,20 @@ void *barber() {
 		if (served == 1) { // czy ostatni klient obsluzony
 			sem_post(&barbers); // informowanie klientow o mozliwosci wejscia do gabinetu
 
-			// zmniejszenie licznika osob w WRoom
-			currentlyInWRoom--;
-
 			// ustawienie flagi
 			served = 0;
 		}
+
 		sem_post(&mutex); // wyjscie z obszaru krytycznego
 
 		sem_wait(&chair); // oczekiwanie na wejscie klienta do gabinetu
 
-		int rnd = rand() % 3;
+		int rnd = rand() % 4;
 		usleep(rnd * 500 * 1000); // strzyzenie
 
 		sem_post(&chair); // wypuszczenie klienta z gabinetu
 	}
+	pthread_exit(0);
 }
 
 // funkcja obslugujaca kazdy pojedynczy watek klienta
@@ -91,6 +93,7 @@ void *customer(void *number) {
 
 		sem_wait(&mutex); // wejscie do obszaru krytycznego
 		custInChair = num; // klient wchodzi do gabinetu
+		currentlyInWRoom--; // zmniejszenie licznika osob w WRoom
 		logger();
 		sem_post(&chair); // informacja dla fryzjera, ze klient wszedl do gabinetu
 		sem_post(&mutex); // wyjscie z obszaru krytycznego
@@ -103,6 +106,6 @@ void *customer(void *number) {
 		sem_post(&mutex); // wyjscie z obszaru krytycznego
 		sem_post(&chair); // informacja dla fryzjera, ze klient wyszedl z gabinetu
 	}
-	
+
 	free(number);
 }
