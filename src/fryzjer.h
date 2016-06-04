@@ -4,6 +4,7 @@
 #include <string.h>
 #include <pthread.h>
 #include <semaphore.h>
+#include "wroom-list.c"
 #include "ticket_lock.c"
 
 void logger();
@@ -13,6 +14,10 @@ void mutex_style();
 void conditional_style();
 void *barber();
 void *customer(void *);
+
+void printWRoomList();
+void pushToWRoomList(int);
+void removeFromWRoomList(int);
 
 volatile int debug = 0;
 volatile int condv = 0;

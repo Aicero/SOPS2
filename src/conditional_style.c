@@ -55,6 +55,7 @@ void *waitingRoom(void *number) {
 	}
 	else { // byly miejsca w poczekalni
 		currentlyInWRoom++;
+		pushToWRoomList(num);
 		logger();
 
 		if (sleeping == 1) { // sprawdzanie czy fryzjer spi
@@ -72,6 +73,7 @@ void *waitingRoom(void *number) {
 		// klient czeka na zwolnienie miejsca u fryzjera
 		pthread_cond_wait(&workingBarber_cond, &waitMutex);
 		custInChair = num;
+		removeFromWRoomList(num); // usuniecie osoby z WRoom list
 		currentlyInWRoom--;
 		logger();
 		pthread_cond_wait(&workingBarber_cond, &waitMutex);
