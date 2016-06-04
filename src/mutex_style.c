@@ -83,6 +83,7 @@ void *customer(void *number) {
 	else { // wejscie do poczekalni
 		// zwiekszenie licznika osob w WRoom
 		currentlyInWRoom++;
+		pushToWRoomList(num);
 		logger();
 
 		sem_post(&customers); // informowanie fryzjera o kliencie
@@ -93,6 +94,7 @@ void *customer(void *number) {
 
 		sem_wait(&mutex); // wejscie do obszaru krytycznego
 		custInChair = num; // klient wchodzi do gabinetu
+		removeFromWRoomList(num); // usuniecie osoby z WRoom list
 		currentlyInWRoom--; // zmniejszenie licznika osob w WRoom
 		logger();
 		sem_post(&chair); // informacja dla fryzjera, ze klient wszedl do gabinetu

@@ -9,10 +9,11 @@ void logger() {
 			}
 		}
 		else {
-			printf("Brak.");
+			printf("-");
 		}
 
-		printf("\n\tWRoom: tu bedzie kolejka\n");
+		printf("\n\tWRoom: ");
+		printWRoomList();
 	}
 	printf("\n");
 }
