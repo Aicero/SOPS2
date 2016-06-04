@@ -53,9 +53,6 @@ void *barber() {
 		if (served == 1) { // czy ostatni klient obsluzony
 			sem_post(&barbers); // informowanie klientow o mozliwosci wejscia do gabinetu
 
-			// zmniejszenie licznika osob w WRoom
-			currentlyInWRoom--;
-
 			// ustawienie flagi
 			served = 0;
 		}
@@ -96,6 +93,7 @@ void *customer(void *number) {
 
 		sem_wait(&mutex); // wejscie do obszaru krytycznego
 		custInChair = num; // klient wchodzi do gabinetu
+		currentlyInWRoom--; // zmniejszenie licznika osob w WRoom
 		logger();
 		sem_post(&chair); // informacja dla fryzjera, ze klient wszedl do gabinetu
 		sem_post(&mutex); // wyjscie z obszaru krytycznego
@@ -104,6 +102,7 @@ void *customer(void *number) {
 		sem_wait(&mutex); // wejscie do obszaru krytycznego
 		served = 1; // ustawienie flagi informujacej o obsluzeniu ostatniego klienta
 		custInChair = 0; // usuniecie klienta z fotela
+		logger();
 		sem_post(&mutex); // wyjscie z obszaru krytycznego
 		sem_post(&chair); // informacja dla fryzjera, ze klient wyszedl z gabinetu
 	}
