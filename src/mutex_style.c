@@ -1,8 +1,7 @@
 void mutex_style() {
 	prepareResClients(); // funkcja alokujaca pamiec na tablice rezygnujacych klientow
 
-	pthread_t brb;
-	pthread_t cust;
+	pthread_t customerThread;
 	int thrErr;
 
 	// inicjalizacja semaforow
@@ -12,7 +11,7 @@ void mutex_style() {
 	sem_init(&mutex, 0, 1);
 
 	// utworzenie watku fryzjera
-	thrErr = pthread_create(&brb, NULL, barber, NULL);
+	thrErr = pthread_create(&barberThread, NULL, barber, NULL);
 	if (thrErr != 0) {
 		fprintf(stderr, "error during creating barber thread!");
 		exit(EXIT_FAILURE);
@@ -29,19 +28,19 @@ void mutex_style() {
 		}
 
 		*custNr = lastCustNr;
-		thrErr = pthread_create(&cust, NULL, customer, custNr);
+		thrErr = pthread_create(&customerThread, NULL, customer, custNr);
 		if (thrErr != 0) {
 			fprintf(stderr, "error during creating barber thread!");
 			exit(EXIT_FAILURE);
 		}
 
-		int rnd = rand() % 3;
+		int rnd = rand() % 4;
 		usleep(rnd * 500 * 1000); // czas oczekiwania na przyjscie kolejnego klienta
 	}
 	
-	//zabezpieczenie przed deadlockiem
-	pthread_join(brb, NULL);
-	pthread_join(cust, NULL);
+	// zabezpieczenie przed deadlockiem
+	pthread_join(barberThread, NULL);
+	pthread_join(customerThread, NULL);
 }
 
 // funkcja obslugujaca watek fryzjera
@@ -70,6 +69,7 @@ void *barber() {
 
 		sem_post(&chair); // wypuszczenie klienta z gabinetu
 	}
+	pthread_exit(0);
 }
 
 // funkcja obslugujaca kazdy pojedynczy watek klienta
@@ -104,7 +104,6 @@ void *customer(void *number) {
 		sem_wait(&mutex); // wejscie do obszaru krytycznego
 		served = 1; // ustawienie flagi informujacej o obsluzeniu ostatniego klienta
 		custInChair = 0; // usuniecie klienta z fotela
-		logger();
 		sem_post(&mutex); // wyjscie z obszaru krytycznego
 		sem_post(&chair); // informacja dla fryzjera, ze klient wyszedl z gabinetu
 	}

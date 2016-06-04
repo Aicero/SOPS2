@@ -20,7 +20,7 @@ volatile int condv = 0;
 
 int *resClients; // tablica przechowujaca liste klientow, ktorzy zrezygnowali z wizyty
 int resClientsSize = 10; // zmienna przechowujaca aktualny rozmiar listy Res
-int resigned = 0; // liczba klientow ktorzy zrezygnowali z wizyty
+volatile int resigned = 0; // liczba klientow ktorzy zrezygnowali z wizyty
 
 volatile int numOfChairs; // liczba krzesel w poczekalni
 volatile int currentlyInWRoom = 0; // aktualna liczba klientow w poczekalni
@@ -35,7 +35,8 @@ void ticket_lock(ticket_lock_t *ticket);
 void ticket_unlock(ticket_lock_t *ticket);
 void *sleepingBarber();
 void *waitingRoom(void *);
-void checkWRoom(int);
+
+pthread_t barberThread;
 
 // mutex_style >>
 sem_t customers;
@@ -51,6 +52,7 @@ pthread_mutex_t sleepMutex = PTHREAD_MUTEX_INITIALIZER;
 
 pthread_mutex_t waitMutex = PTHREAD_MUTEX_INITIALIZER;
 ticket_lock_t queueMutex = TICKET_LOCK_INITIALIZER;
+ticket_lock_t queueFIFOMutex = TICKET_LOCK_INITIALIZER;
 // conditional_style <<
 
 #include "mutex_style.c"
