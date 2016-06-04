@@ -1,16 +1,5 @@
-pthread_cond_t sleepingBarber_cond = PTHREAD_COND_INITIALIZER;
-pthread_cond_t workingBarber_cond = PTHREAD_COND_INITIALIZER;
-pthread_mutex_t sleepMutex = PTHREAD_MUTEX_INITIALIZER;
-
-pthread_mutex_t waitMutex = PTHREAD_MUTEX_INITIALIZER;
-ticket_lock_t queueMutex = TICKET_LOCK_INITIALIZER;
-
-volatile int sleeping = 0, rndSeed;
-
-int conditional_style()
-{
-	rndSeed = time(NULL);
-	srand(rndSeed);
+void conditional_style() {
+	prepareResClients(); // funkcja alokujaca pamiec na tablice rezygnujacych klientow
 	pthread_t barberThread, customerThread;
 	int thrErr;
 	//Tworzenie watku fryzjera
@@ -40,10 +29,8 @@ int conditional_style()
 	}
 
 	//zabezpieczenie przed deadlockiem
-	//pthread_join(barber,NULL);
-	//pthread_join(customerThread,NULL);
-
-	return 0;
+	pthread_join(barberThread, NULL);
+	pthread_join(customerThread, NULL);
 }
 
 //Poczekalnia
@@ -52,8 +39,39 @@ void *waitingRoom(void *number)
 	int num = *(int *)number;
 	//Lock na mutexie poczekalni (sprawdzac moze tylko jeden klient na raz)
 	ticket_lock(&queueMutex);
-	//Sprawdzenie poczekalni
-	checkWRoom(num);
+    
+	//Klient sprawdza wolne miejsca
+    if (currentlyInWRoom == numOfChairs) {
+		addResignedClient(num); // dodawanie numeru zrezygnowanego klienta do listy
+        logger();
+		ticket_unlock(&queueMutex); // wyjscie z obszaru krytycznego
+    }
+    else {
+		//Byly miejsca w poczekalni, sprawdzanie czy fryzjer spi
+	    currentlyInWRoom++;
+		logger();
+		if (sleeping == 1)
+		{
+			//Fryzjer spal, klient go budzi
+			pthread_cond_signal(&sleepingBarber_cond);
+		}
+		//Klient zwalnia queueMutex - poczekalnie moze sprawdzic kolejny klient
+		ticket_unlock(&queueMutex);
+		//Klient zajmuje miejsce na samym poczatku kolejki
+		pthread_mutex_lock(&waitMutex);
+		logger();
+		//Klient czeka na zwolnienie miejsca u fryzjera
+		pthread_cond_wait(&workingBarber_cond, &waitMutex);
+		custInChair = num;
+		logger();
+		pthread_mutex_unlock(&waitMutex);
+		//return;
+	}
+    
+    
+    
+    //Sprawdzenie poczekalni
+	//checkWRoom(num);
 	//Po zakonczeniu
 	free(number);
 	//Poczekalnia byla zajeta, klient rezygnuje
@@ -95,7 +113,7 @@ void checkWRoom(int number)
 	//Klient wszedl do poczekalni "zajmuje miejsce mentalnie"
 	currentlyInWRoom++;
 	//Klient sprawdza wolne miejsca
-	if (currentlyInWRoom < numOfChairs)
+	if (currentlyInWRoom <= numOfChairs)
 	{
 		//Byly miejsca w poczekalni, sprawdzanie czy fryzjer spi
 		if (sleeping == 1)
@@ -115,12 +133,14 @@ void checkWRoom(int number)
 		pthread_mutex_unlock(&waitMutex);
 		return;
 	}
-	if (currentlyInWRoom >= numOfChairs)
+	if (currentlyInWRoom > numOfChairs)
 	{
 		//Poczekalnia jest pelna, klient wychodzi
 		currentlyInWRoom--;
-		addResignedClient(number); // dodawanie numeru zrezygnowanego klienta do listy
-		logger();
+        resigned++;
+        printf("halo");
+		//addResignedClient(number); // dodawanie numeru zrezygnowanego klienta do listy
+		//logger();
 		//I zwalnia queueMutex - poczekalnie moze sprawdzic kolejny klient
 		ticket_unlock(&queueMutex);
 		return;

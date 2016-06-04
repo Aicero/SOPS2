@@ -38,6 +38,10 @@ void mutex_style() {
 		int rnd = rand() % 3;
 		usleep(rnd * 500 * 1000); // czas oczekiwania na przyjscie kolejnego klienta
 	}
+	
+	//zabezpieczenie przed deadlockiem
+	pthread_join(brb, NULL);
+	pthread_join(cust, NULL);
 }
 
 // funkcja obslugujaca watek fryzjera
@@ -56,6 +60,7 @@ void *barber() {
 			// ustawienie flagi
 			served = 0;
 		}
+		
 		sem_post(&mutex); // wyjscie z obszaru krytycznego
 
 		sem_wait(&chair); // oczekiwanie na wejscie klienta do gabinetu

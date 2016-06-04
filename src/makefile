@@ -16,3 +16,6 @@ tmd :
 	
 tz :
 	compiled/fryzjer 10 -zmienne
+
+tzd :
+	compiled/fryzjer 2 -debug -zmienne

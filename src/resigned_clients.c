@@ -18,4 +18,5 @@ void addResignedClient(int num) {
 
 	resClients[resigned] = num;
 	resigned++; // zwiekszenie licznika osob, ktore zrezygnowaly
+	
 }
