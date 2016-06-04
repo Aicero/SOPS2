@@ -5,6 +5,7 @@ typedef struct node {
 
 node_t *head = NULL;
 
+// dodanie klienta do listy osob w poczekalni
 void pushToWRoomList(int num) {
 	if (head == NULL) {
 		head = malloc(sizeof(node_t));
@@ -28,6 +29,7 @@ void pushToWRoomList(int num) {
 	}
 }
 
+// usuniecie klienta z listy osob w poczekalni
 void removeFromWRoomList(int num) {
 	node_t *current = head;
 	node_t *temp_node = NULL;
@@ -53,6 +55,7 @@ void removeFromWRoomList(int num) {
 	}
 }
 
+// drukowanie listy osob w poczekalni
 void printWRoomList() {
 	node_t *current = head;
 
