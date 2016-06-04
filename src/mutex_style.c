@@ -1,6 +1,6 @@
 void mutex_style() {
 	prepareResClients(); // funkcja alokujaca pamiec na tablice rezygnujacych klientow
-	
+
 	pthread_t brb;
 	pthread_t cust;
 	int thrErr;
@@ -23,11 +23,11 @@ void mutex_style() {
 		lastCustNr++;
 
 		int *custNr = malloc(sizeof(*custNr));
-		if(custNr == NULL) {
+		if (custNr == NULL) {
 			fprintf(stderr, "error allocating memory for next customer number!");
 			exit(EXIT_FAILURE);
 		}
-		
+
 		*custNr = lastCustNr;
 		thrErr = pthread_create(&cust, NULL, customer, custNr);
 		if (thrErr != 0) {
@@ -103,6 +103,6 @@ void *customer(void *number) {
 		sem_post(&mutex); // wyjscie z obszaru krytycznego
 		sem_post(&chair); // informacja dla fryzjera, ze klient wyszedl z gabinetu
 	}
-	
+
 	free(number);
 }

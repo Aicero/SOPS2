@@ -12,7 +12,7 @@ tm :
 	compiled/fryzjer 5
 	
 tmd :
-	compiled/fryzjer 5 -debug
+	compiled/fryzjer 2 -debug
 	
 tz :
 	compiled/fryzjer 10 -zmienne
