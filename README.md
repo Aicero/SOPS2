@@ -27,3 +27,4 @@ Oznacza to, że dwóch klientów zrezygnowało z powodu braku miejsc (*Res*), w 
 
         liczba krzeseł w poczekalni (*)
         -debug (opcjonalny) - wypisywana jest cała kolejka klientów czekających oraz tych, którzy zrezygnowali z usług (komunikat wypisywany w momencie zmiany którejkolwiek z tych wartości)
+        -zmienne (opcjonalny) - uruchomienie programu z użyciem zmiennych warunkowych
