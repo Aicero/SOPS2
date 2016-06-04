@@ -13,7 +13,7 @@ pthread_cond_t sleepingBarber_cond = PTHREAD_COND_INITIALIZER;
 pthread_cond_t workingBarber_cond = PTHREAD_COND_INITIALIZER;
 pthread_mutex_t sleepMutex = PTHREAD_MUTEX_INITIALIZER;
 
-ticket_lock_t waitMutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_lock_t waitMutex = PTHREAD_MUTEX_INITIALIZER;
 ticket_lock_t queueMutex = PTHREAD_MUTEX_INITIALIZER;
 
 int ticket_lock(ticket_lock_t *ticket);
@@ -152,13 +152,13 @@ void checkWRoom(int number)
         //Klient zwalnia queueMutex - poczekalnie moze sprawdzic kolejny klient
         ticket_unlock(&queueMutex);
         //Klient zajmuje miejsce na samym poczatku kolejki
-        ticket_lock(&waitMutex);
+        pthread_mutex_lock(&waitMutex);
         logger();
         //Klient czeka na zwolnienie miejsca u fryzjera
-        pthread_cond_wait(&workingBarber_cond,&waitMutex);
+        pthread_cond_wait(&workingBarber_cond,&waitMutex); 
         custInChair = number;
         logger();
-        ticket_unlock(&waitMutex);
+        pthread_mutex_unlock(&waitMutex);
         return;
     }
     if(currentlyInWRoom >= numOfChairs)
